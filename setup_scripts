@@ -1,0 +1,55 @@
+# using map from here to get centimorgan locaitons 
+# https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz 
+# see also
+# https://github.com/bulik/ldsc/wiki/LD-Score-Estimation-Tutorial 
+
+# setup
+cd /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making
+
+srun --pty --mem=20g --time=06:00:00 -p devel bash
+
+# make scripts
+for group in {ADMIXED,EAS,SAS,EUR,AMR,AFR,white_british}
+do
+for chr in {1..22}
+do
+
+echo '#!/bin/bash
+#SBATCH --partition=day
+#SBATCH --mem=400g
+#SBATCH --cpus-per-task=4
+#SBATCH -t 1380:00
+
+
+ml PLINK/1.9b_6.21-x86_64
+ml miniconda
+
+
+time_with_seconds=$(date +%T)
+echo "starting '${group}' chrom '${chr}' ${time_with_seconds}"
+
+plink --bfile /gpfs/gibbs/pi/polimanti/UKBiobank/chr'${chr}' \
+--threads 4 \
+--snps-only \
+--maf 0.01 \
+--keep /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/GWAS/assign_ancestry_redo/UKB_'${group}' \
+--extract /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making/hm3_list \
+--cm-map /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making/maps/genetic_map_chr'${chr}'_combined_b37.txt '${chr}' \
+--make-bed \
+--out /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making/'${group}'_chr'${chr}'_cms
+
+
+
+conda run -n ldsc /gpfs/gibbs/pi/huckins/software/ldsc/ldsc.py --bfile '${group}'_chr'${chr}'_cms \
+--l2 \
+--ld-wind-cm 1 \
+--out /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making/'${group}'_ldscores/'${chr}'
+
+rm '${group}'_chr'${chr}'_cms.bed
+rm '${group}'_chr'${chr}'_cms.bim
+rm '${group}'_chr'${chr}'_cms.fam' > ${group}_${chr}_cmMap_ldscore.sh
+
+
+
+done
+done
