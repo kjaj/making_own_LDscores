@@ -1,0 +1,21 @@
+for group in {AMR,AFR,SAS,white_british,EUR,EAS,ADMIXED}
+do
+for chr in {1..22}
+do
+
+echo '#!/bin/bash
+#SBATCH --partition=day
+#SBATCH --mem=400g
+#SBATCH --cpus-per-task=16
+#SBATCH -t 1380:00
+
+
+/gpfs/gibbs/pi/huckins/software/ldsc/ldsc.py --bfile '${group}'_chr'${chr}'_cms \
+--l2 \
+--ld-wind-cm 1 \
+--out /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making/'${group}'_ldscores/'${chr}'
+
+
+rm '${group}'_chr'${chr}'_cms.bed
+rm '${group}'_chr'${chr}'_cms.bim
+rm '${group}'_chr'${chr}'_cms.fam' > ${group}_${chr}_ldsc.sh
