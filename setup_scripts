@@ -4,12 +4,12 @@
 # https://github.com/bulik/ldsc/wiki/LD-Score-Estimation-Tutorial 
 
 # setup
-cd /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making
+cd /path/to/working_directory
 
 srun --pty --mem=20g --time=06:00:00 -p devel bash
 
 # make scripts
-for group in {ADMIXED,EAS,SAS,EUR,AMR,AFR,white_british}
+for group in {group1,group2}
 do
 for chr in {1..22}
 do
@@ -28,22 +28,22 @@ ml miniconda
 time_with_seconds=$(date +%T)
 echo "starting '${group}' chrom '${chr}' ${time_with_seconds}"
 
-plink --bfile /gpfs/gibbs/pi/polimanti/UKBiobank/chr'${chr}' \
+plink --bfile /path/to/genotype_data/chr'${chr}' \
 --threads 4 \
 --snps-only \
 --maf 0.01 \
---keep /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/GWAS/assign_ancestry_redo/UKB_'${group}' \
---extract /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making/hm3_list \
---cm-map /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making/maps/genetic_map_chr'${chr}'_combined_b37.txt '${chr}' \
+--keep UKB_'${group}' \
+--extract hm3_list \
+--cm-map /path/to/maps/genetic_map_chr'${chr}'_combined_b37.txt '${chr}' \
 --make-bed \
---out /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making/'${group}'_chr'${chr}'_cms
+--out '${group}'_chr'${chr}'_cms
 
 
 
 conda run -n ldsc /gpfs/gibbs/pi/huckins/software/ldsc/ldsc.py --bfile '${group}'_chr'${chr}'_cms \
 --l2 \
 --ld-wind-cm 1 \
---out /gpfs/gibbs/pi/huckins/kjj28/UKB_analyses/ldscores_making/'${group}'_ldscores/'${chr}'
+--out '${chr}'
 
 rm '${group}'_chr'${chr}'_cms.bed
 rm '${group}'_chr'${chr}'_cms.bim
